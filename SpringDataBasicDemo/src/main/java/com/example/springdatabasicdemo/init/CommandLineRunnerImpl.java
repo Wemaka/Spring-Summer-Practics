@@ -24,7 +24,7 @@ public class CommandLineRunnerImpl implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-//		seedData();
+		seedData();
 	}
 
 	private void seedData() throws IOException {

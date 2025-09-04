@@ -9,11 +9,13 @@ import com.example.springdatabasicdemo.services.AddressService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class AddressServiceImpl implements AddressService<Integer> {
 	@Autowired
 	private AddressRepository addressRepository;
