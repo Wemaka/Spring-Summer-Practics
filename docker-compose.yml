@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Сервис для приложения springAI
+  spring-ai:
+    build:
+      context: ./springAI # Указываем путь к Dockerfile
+    container_name: spring-ai-service
+    ports:
+      - "8081:8081" # Пробрасываем порт на хост-машину
+    networks:
+      - my-app-network
+    environment:
+      - SERVER_PORT=8081
+
+  # Сервис для приложения SpringDataBasicDemo
+  spring-data-demo:
+    build:
+      context: ./SpringDataBasicDemo
+    container_name: spring-data-demo-service
+    ports:
+      - "8080:8080"
+    networks:
+      - my-app-network
+    environment:
+      # Переопределяем настройки из application.properties
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/spring_data_basic
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create # Оставляем 'create' для автоматического создания таблиц
+    depends_on:
+      postgres-db:
+        condition: service_healthy # Запускать этот сервис только после того, как postgres-db будет готов
+
+  # Сервис базы данных PostgreSQL
+  postgres-db:
+    image: postgres:17-alpine # Используем официальный, легковесный образ
+    container_name: postgres-db
+    ports:
+      - "5433:5432" # Пробрасываем порт для возможности подключения с хоста
+    environment:
+      # Эти переменные используются образом Postgres для инициализации
+      - POSTGRES_DB=spring_data_basic # Имя базы данных, которая будет создана автоматически
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data # Сохраняем данные в именованном томе
+    networks:
+      - my-app-network
+    healthcheck:
+      # Проверка, готова ли база данных принимать команды
+      test: ["CMD-SHELL", "pg_isready -U postgres -d spring_data_basic"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# Определяем сети и тома
+networks:
+  my-app-network:
+    driver: bridge
+
+volumes:
+  db-data: # Именованный том для персистентности данных БД
